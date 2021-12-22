@@ -1,6 +1,7 @@
 import { Body, Controller, Headers, Post } from '@nestjs/common'
 import { GroupDaoService } from './group-dao.service'
 import { CreateGroupDaoDto, CreateProposal } from './dto/create-group-dao.dto'
+import { ProposalResponse } from './interfaces'
 
 @Controller()
 export class GroupDaoController {
@@ -12,7 +13,10 @@ export class GroupDaoController {
   }
 
   @Post('group-dao/proposals')
-  async createProposal(@Headers() headers: any, @Body() groupDaoRequest: CreateProposal): Promise<void> {
+  async createProposal(
+    @Headers() headers: any,
+    @Body() groupDaoRequest: CreateProposal,
+  ): Promise<ProposalResponse> {
     return this.appService.createProposal(groupDaoRequest, headers.authorization)
   }
 }

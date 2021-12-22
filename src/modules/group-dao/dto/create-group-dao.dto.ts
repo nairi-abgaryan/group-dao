@@ -16,4 +16,10 @@ export class CreateProposal {
 
   @ApiProperty()
   proposal_type: ProposalType
+
+  @ApiProperty()
+  base_url: string
+
+  @ApiProperty()
+  period: number
 }

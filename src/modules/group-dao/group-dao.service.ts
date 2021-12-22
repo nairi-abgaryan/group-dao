@@ -1,13 +1,16 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common'
 import * as client from '@daostack/client'
-import { CreateAnnouncementPayload } from './interfaces'
+import { CreateAnnouncementPayload, ProposalResponse } from './interfaces'
 const utils = client.utils
 import { default as axios } from 'axios'
 import { GLOBAL_ID_BASE_URL as svcUrl } from '../../conf'
 import { GroupDaoRepository } from './group-dao.repository'
 import { GroupDaoEntity } from './entities/group-dao.entity'
 import { CreateProposal } from './dto/create-group-dao.dto'
+import { Proposal } from '@daostack/client'
+import { doc } from 'prettier'
+import group = doc.builders.group
 
 @Injectable()
 export class GroupDaoService {
@@ -35,7 +38,7 @@ export class GroupDaoService {
     await this.createAnnouncement(access_token, announcementMessage, group_uuid)
   }
   
-  async createProposal(proposal: CreateProposal, access_token): Promise<void> {
+  async createProposal(createProposal: CreateProposal, access_token): Promise<ProposalResponse> {
     const arc: client.Arc = this.arcInstance()
     await arc.fetchContractInfos()
     
@@ -55,32 +58,37 @@ export class GroupDaoService {
       const schemeState = await schemes[0].state().first()
   
       // Send Transaction to create new proposal
-      const minedTx = await dao.createProposal({
-        description: "Change group visibility",
-        title: "Change group visibility",
-        url: "http://localhost:3000",
-        scheme: schemeState.address,
-        beneficiary: "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1",
-        nativeTokenReward: "",
-        reputationReward: utils.toWei('100'),
-        ethReward: utils.toWei('1'),
-        externalTokenReward: "",
-        externalTokenAddress: "",
-        periodLength: "",
-        periods: ""
-      }).send()
-  
-      console.log(`Tx Hash: ${minedTx.receipt.transactionHash}`)
-      const proposal = await dao.proposals({where: {id: '0x0cac41c6f384e0c6e5c551d64a779b84f27d51d9bd6c1a8bf9d38c8610138157'}}).first()
-      console.log(proposal)
-      dao.proposals().subscribe(
-        async (proposals) => {
-          for (const proposal of proposals) {
-            proposal.state().subscribe(
-              (p) => console.log(p)
-            )
-          }
-        })
+      const proposal = {
+          description: `Change group ${createProposal.proposal_type}`,
+          title: createProposal.proposal_type,
+          url: createProposal.base_url,
+          scheme: schemeState.address,
+          beneficiary: "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1",
+          nativeTokenReward: "",
+          reputationReward: utils.toWei('100'),
+          ethReward: utils.toWei('1'),
+          externalTokenReward: "",
+          externalTokenAddress: "",
+          periodLength: "",
+          periods: 1,
+      }
+     
+      const p = await dao.createProposal(proposal).send()
+      
+      const date = new Date();
+      date.setHours( date.getHours() + createProposal.period??1 );
+      const announcementMessage: CreateAnnouncementPayload = {
+        markdown: `**Voting on ${p.title} is now open**
+                    To vote, click on http://${proposal.url}/${p.result.id}.  Voting closes at ${date.toUTCString()}.`
+      }
+      
+      await this.createAnnouncement(access_token, announcementMessage, createProposal.group_uuid)
+      return {
+        id: p.result.id,
+        group_uuid: createProposal.group_uuid,
+        proposal_type: createProposal.proposal_type,
+        url: `${proposal.url}/${p.result.id}`,
+      }
     } catch (e) {
       console.log('err', e)
     }
