@@ -7,6 +7,7 @@ import { default as axios } from 'axios'
 import { GLOBAL_ID_BASE_URL as svcUrl } from '../../conf'
 import { GroupDaoRepository } from './group-dao.repository'
 import { GroupDaoEntity } from './entities/group-dao.entity'
+import { CreateProposal } from './dto/create-group-dao.dto'
 
 @Injectable()
 export class GroupDaoService {
@@ -34,7 +35,7 @@ export class GroupDaoService {
     await this.createAnnouncement(access_token, announcementMessage, group_uuid)
   }
   
-  async createProposal(group_uuid: string, access_token): Promise<void> {
+  async createProposal(proposal: CreateProposal, access_token): Promise<void> {
     const arc: client.Arc = this.arcInstance()
     await arc.fetchContractInfos()
     
