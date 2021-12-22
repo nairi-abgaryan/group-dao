@@ -22,7 +22,7 @@ export class CreateProposal {
 
   @ApiProperty()
   option_2: string
-  
+
   @ApiProperty()
   base_url: string
 

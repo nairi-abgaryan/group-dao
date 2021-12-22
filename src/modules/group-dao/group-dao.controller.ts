@@ -1,4 +1,4 @@
-import { Body, Controller, Headers, Post } from '@nestjs/common'
+import { Body, Controller, Get, Headers, Post } from '@nestjs/common'
 import { GroupDaoService } from './group-dao.service'
 import { CreateGroupDaoDto, CreateProposal } from './dto/create-group-dao.dto'
 import { ProposalResponse } from './interfaces'

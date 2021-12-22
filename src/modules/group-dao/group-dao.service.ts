@@ -30,7 +30,7 @@ export class GroupDaoService {
     groupDao.dao_uuid = daos[0].id
   
     try{
-      await this.groupDaoRepository.save(groupDao)
+      await this.groupDaoRepository.create(groupDao)
       const announcementMessage: CreateAnnouncementPayload = {
         markdown: `**This group has been converted to a DAO**
       *To see the DAO on Ethereum, click on this link https://ethplorer.io/tx/0x123456%20Ethplorer*\n`
