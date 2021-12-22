@@ -81,7 +81,7 @@ export class GroupDaoService {
       const date = new Date();
       date.setHours( date.getHours() + createProposal.period??1 );
       const announcementMessage: CreateAnnouncementPayload = {
-        markdown: `**Voting on ${p.title} is now open**
+        markdown: `**Voting on ${proposal.title} is now open**
                     To vote, click on http://${proposal.url}/${p.result.id}.  Voting closes at ${date.toUTCString()}.`
       }
       
