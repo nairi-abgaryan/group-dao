@@ -8,13 +8,14 @@ import { GLOBAL_ID_BASE_URL as svcUrl } from '../../conf'
 import { GroupDaoRepository } from './group-dao.repository'
 import { GroupDaoEntity } from './entities/group-dao.entity'
 import { CreateProposal } from './dto/create-group-dao.dto'
-import { Proposal } from '@daostack/client'
-import { doc } from 'prettier'
-import group = doc.builders.group
+import { GroupDaoProposalRepository } from './group-dao-proposal.repository'
 
 @Injectable()
 export class GroupDaoService {
-  constructor(private groupDaoRepository: GroupDaoRepository) {}
+  constructor(
+    private groupDaoRepository: GroupDaoRepository,
+    private groupDaoProposalRepository: GroupDaoProposalRepository
+  ){}
   
   async createGroupDao(group_uuid: string, access_token): Promise<void>
   {
@@ -28,14 +29,17 @@ export class GroupDaoService {
     groupDao.group_uuid = group_uuid
     groupDao.dao_uuid = daos[0].id
   
-    await this.groupDaoRepository.create(groupDao)
-    
-    const announcementMessage: CreateAnnouncementPayload = {
-      markdown: `**This group has been converted to a DAO**
+    try{
+      await this.groupDaoRepository.save(groupDao)
+      const announcementMessage: CreateAnnouncementPayload = {
+        markdown: `**This group has been converted to a DAO**
       *To see the DAO on Ethereum, click on this link https://ethplorer.io/tx/0x123456%20Ethplorer*\n`
+      }
+  
+      await this.createAnnouncement(access_token, announcementMessage, group_uuid)
+    } catch (e) {
+      console.log(e)
     }
-    
-    await this.createAnnouncement(access_token, announcementMessage, group_uuid)
   }
   
   async createProposal(createProposal: CreateProposal, access_token): Promise<ProposalResponse> {
@@ -47,7 +51,6 @@ export class GroupDaoService {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       const daos = await arc.daos().first()
-  
       const dao = daos[0]
       const schemes = await dao.schemes({ where: { name: 'ContributionReward'}}).first()
   
@@ -83,9 +86,20 @@ export class GroupDaoService {
       }
       
       await this.createAnnouncement(access_token, announcementMessage, createProposal.group_uuid)
+      await this.groupDaoProposalRepository.create({
+        proposal_id:  p.result.id,
+        dao_id: dao.id,
+        option_1: createProposal.option_1,
+        option_2: createProposal.option_2,
+        group_uuid: createProposal.group_uuid
+      })
+      
       return {
         id: p.result.id,
         group_uuid: createProposal.group_uuid,
+        dao_id: dao.id,
+        option_1: createProposal.option_1,
+        option_2: createProposal.option_2,
         proposal_type: createProposal.proposal_type,
         url: `${proposal.url}/${p.result.id}`,
       }

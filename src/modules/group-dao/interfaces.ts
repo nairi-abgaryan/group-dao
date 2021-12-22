@@ -15,4 +15,7 @@ export interface ProposalResponse {
   id: string
   proposal_type: ProposalType
   url: string
+  dao_id: string
+  option_1: string
+  option_2: string
 }

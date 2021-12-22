@@ -7,7 +7,7 @@ export class GroupDaoEntity extends AbstractEntity {
   uuid: string
 
   @Column()
-  dao_uuid: number
+  dao_uuid: string
 
   @Column()
   group_uuid: string

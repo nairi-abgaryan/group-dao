@@ -18,6 +18,12 @@ export class CreateProposal {
   proposal_type: ProposalType
 
   @ApiProperty()
+  option_1: string
+
+  @ApiProperty()
+  option_2: string
+  
+  @ApiProperty()
   base_url: string
 
   @ApiProperty()
