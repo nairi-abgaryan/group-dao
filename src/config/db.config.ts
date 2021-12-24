@@ -15,6 +15,7 @@ export function getDbConfig(): TypeOrmModuleOptions {
     synchronize: false,
     autoLoadEntities: false,
     migrations,
+    logging: true,
     entities,
     migrationsRun: true,
     cli: {
