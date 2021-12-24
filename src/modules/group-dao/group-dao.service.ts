@@ -8,7 +8,7 @@ import { GroupDaoRepository } from './group-dao.repository'
 import { GroupDaoEntity } from './entities/group-dao.entity'
 import { CreateProposal } from './dto/create-group-dao.dto'
 import { GroupDaoProposalRepository } from './group-dao-proposal.repository'
-import { catchError, skipWhile, timeout } from 'rxjs'
+import { skipWhile, timeout } from 'rxjs'
 
 const utils = client.utils
 
@@ -109,37 +109,7 @@ export class GroupDaoService {
       throw new HttpException('Proposal not found', 404)
     }
 
-    return new Promise((resolve, reject) => {
-      stateObservable
-        .pipe(
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          skipWhile((res) => res === null, true),
-          timeout(2000),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          catchError((err) => {
-            reject(new HttpException(err.message, 409))
-          }),
-        )
-        .subscribe(async (proposal: IProposalState) => {
-          if (proposal === undefined || proposal == null) {
-            reject(new HttpException('Something went wrong', 409))
-          }
-
-          resolve({
-            id: proposal.id,
-            title: proposal.title,
-            group_uuid: dbProposal.group_uuid,
-            dao_id: proposal.dao.id,
-            option_1: dbProposal.option_1,
-            option_2: dbProposal.option_2,
-            proposal_type: dbProposal.proposal_type,
-            url: proposal.url,
-            closed_at: new Date(proposal.createdAt).toUTCString(),
-          })
-        })
-    })
+    return this.handleProposal(stateObservable, dbProposal)
   }
 
   async getProposals(group_uuid: string): Promise<ProposalResponse[]> {
@@ -154,14 +124,27 @@ export class GroupDaoService {
       const pr = new Proposal(dbProposal.proposal_id, arc)
       const stateObservable = pr.state()
 
-      return new Promise((resolve) => {
-        stateObservable
-          .pipe(
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            skipWhile((res) => res === null),
-          )
-          .subscribe(async (proposal: IProposalState) => {
+      return this.handleProposal(stateObservable, dbProposal)
+    })
+
+    return Promise.all(arrProposals)
+  }
+
+  async handleProposal(stateObservable, dbProposal): Promise<ProposalResponse> {
+    return new Promise((resolve, reject) => {
+      stateObservable
+        .pipe(
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          skipWhile((res) => res === null, true),
+          timeout(2000),
+        )
+        .subscribe({
+          next: (proposal: IProposalState) => {
+            if (proposal === undefined || proposal == null) {
+              reject(new HttpException('Something went wrong', 409))
+            }
+
             resolve({
               id: proposal.id,
               title: proposal.title,
@@ -173,13 +156,13 @@ export class GroupDaoService {
               url: proposal.url,
               closed_at: new Date(proposal.createdAt).toUTCString(),
             })
-          })
-      })
+          },
+          error: () => {
+            reject(new HttpException('Conflict', 409))
+          },
+        })
     })
-
-    return Promise.all(arrProposals)
   }
-
   arcInstance(): client.Arc {
     return new client.Arc({
       graphqlHttpProvider: 'http://localhost:8000/subgraphs/name/daostack',
