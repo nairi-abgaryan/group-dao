@@ -72,8 +72,8 @@ export class GroupDaoService {
         ethReward: utils.toWei('1'),
         externalTokenReward: '',
         externalTokenAddress: '',
-        periodLength: createProposal.period,
-        periods: 1,
+        periodLength: 1,
+        periods: 20,
       })
       .send()
 
@@ -144,7 +144,7 @@ export class GroupDaoService {
             if (proposal === undefined || proposal == null) {
               reject(new HttpException('Something went wrong', 409))
             }
-
+            console.log(proposal.closingAt)
             resolve({
               id: proposal.id,
               title: proposal.title,
@@ -154,7 +154,7 @@ export class GroupDaoService {
               option_2: dbProposal.option_2,
               proposal_type: dbProposal.proposal_type,
               url: proposal.url,
-              closed_at: new Date(proposal.createdAt).toUTCString(),
+              closed_at: new Date(proposal.closingAt * 1000).toUTCString(),
             })
           },
           error: () => {
