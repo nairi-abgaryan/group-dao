@@ -7,8 +7,8 @@
     <p align="center">
 
 ## Description
-The project uses [dao clinet ](https://daostack.github.io/DAOstack-Hackers-Kit/)
-Current version uses existing dao object for creating your own dao object you need to use 
+The project uses [dao clinet ](https://daostack.github.io/DAOstack-Hackers-Kit/) <br>
+Current Code version uses existing dao object for creating your own dao object you need to use 
 daostack [migrations](https://daostack.github.io/DAOstack-Hackers-Kit/migration/)
 
 There are different type of proposal. Proposal functions
@@ -16,8 +16,8 @@ There are different type of proposal. Proposal functions
 1. [Get proposal ](https://github.com/nairi-abgaryan/group-dao/blob/670ac02a049d128d3b5116c86f10b871c7450392/src/modules/group-dao/group-dao.service.ts#L102)
 1. [Get proposals ](https://github.com/nairi-abgaryan/group-dao/blob/670ac02a049d128d3b5116c86f10b871c7450392/src/modules/group-dao/group-dao.service.ts#L115)
 
-For finding proposal we use our db then doing request to client for each proposal. 
-Good solution is using dao object  as discribed in here
+For finding proposals we use our db then doing request to client for each proposal. 
+Good solution is using dao object  as discribed here
 ```js
 const showProposalDetails = async () => {
   const daos = await arc.daos().first()
